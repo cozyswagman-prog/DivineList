@@ -472,13 +472,20 @@ async function localJson(path, { body, signal, timeout = 3000 } = {}) {
 export async function probeOllama() {
   try {
     const result = await localJson('/api/tags');
+    const models = (result.models ?? [])
+      .filter((model) => !model.remote_host && !model.name?.includes('cloud'))
+      .map((model) => model.name)
+      .filter((name) => typeof name === 'string')
+      .slice(0, 30);
     return {
       available: true,
-      models: (result.models ?? [])
-        .filter((m) => !m.remote_host && !m.name?.includes('cloud'))
-        .map((m) => m.name)
-        .filter((n) => typeof n === 'string')
-        .slice(0, 30),
+      models,
+      ...(models.length
+        ? {}
+        : {
+            error:
+              'Ollama är ansluten, men inga lokala modeller är installerade. Installera eller hämta en modell i Ollama och kontrollera sedan anslutningen igen.',
+          }),
     };
   } catch {
     return {

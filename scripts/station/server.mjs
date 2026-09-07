@@ -46,6 +46,7 @@ export async function createStationServer({
   dataDir = resolve(root, 'work/station-data'),
   dependencies = {},
   requireBuild = true,
+  allowExternalRequests = false,
 } = {}) {
   const assets = requireBuild
     ? await verifyStationBuild(root)
@@ -153,9 +154,19 @@ export async function createStationServer({
       totalRamGB: Number((totalmem() / 2 ** 30).toFixed(1)),
     },
   });
+  const isLocalRequestHost = (address, hostHeader) => {
+    if (!hostHeader || !address || typeof address === 'string') return false;
+    const [rawHost, rawPort] = hostHeader.split(':');
+    const hostPort = Number.parseInt(rawPort, 10);
+    if (!Number.isInteger(hostPort) || hostPort !== address.port) return false;
+    if (allowExternalRequests) return /^(?:\d{1,3}\.){3}\d{1,3}$/u.test(rawHost);
+    return hostHeader === `127.0.0.1:${address.port}`;
+  };
   const server = createServer({ maxHeaderSize: 16_384 }, async (req, res) => {
     const address = server.address();
-    const origin = `http://127.0.0.1:${address.port}`;
+    const hostHeader =
+      typeof req.headers.host === 'string' ? req.headers.host : '';
+    const origin = hostHeader ? `http://${hostHeader}` : '';
     const send = (status, value, type = 'application/json; charset=utf-8') => {
       res.writeHead(status, { 'content-type': type });
       res.end(
@@ -181,12 +192,12 @@ export async function createStationServer({
     res.setHeader('cache-control', 'no-store');
     try {
       if (
-        req.headers.host !== `127.0.0.1:${address.port}` ||
+        !isLocalRequestHost(address, hostHeader) ||
         (req.headers.origin && req.headers.origin !== origin) ||
         req.headers['sec-fetch-site'] === 'cross-site'
       )
         return send(403, {
-          error: 'Endast den lokala DivineList-stationen får använda tjänsten.',
+          error: 'Begäran avvisades av säkerhetskontrollen.',
         });
       const url = new URL(req.url, origin);
       if (req.method === 'GET' || req.method === 'HEAD') {

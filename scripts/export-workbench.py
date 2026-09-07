@@ -28,10 +28,10 @@ SCHEMA_HASH = "sha256:ff1e5867410d560c1bf37453558c969a8717efefae95363ad24e625813
 ADAPTER_VERSION = "divinelist.adapter-key-coverage.v1"
 ADAPTER_SHA256 = "sha256:aa2f340017424fed22a1c0e8e7140c66b3f2b1d0e0624d98cda6b2c6d678ab10"
 BINDINGS = {
-    "factHash": "sha256:837feeb902c09495e4d97bdf3a3696bc3b5ab4f764090576dceadd0b34e0d643",
-    "ruleHash": "sha256:5269f4d86f079f1c338478441111a92cfd12719a486f68908db61e1ca65922ec",
-    "evaluationPolicyHash": "sha256:1aeaaa97cfe50a9ad5bcbfa10c4554be7cc5c44bb9add722cfe21cbd2c72d528",
-    "contractManifestHash": "sha256:a87252f1e5f7b12cda35a271ce6147a342816ffa4e6aa4c820e34b3bbc9c0fa6",
+    "factHash": "sha256:2d3fdaad45155c4ba56ba952579fc8bb8da8015f9f2f1414368627fe58d5dec7",
+    "ruleHash": "sha256:ea1086980e715285c9f2cbadb99dbbae4dd6b48bb9514edc45ced2ff2d2b65e5",
+    "evaluationPolicyHash": "sha256:e70213fd64d93e5e0a6f3b79ef2f467c1f2dbfbe5db30e357154970b7b37a225",
+    "contractManifestHash": "sha256:d31c140bec5532b7f0b8c6eeb004e72e81660f02eac004509a728e9f385d9401",
 }
 MAPPED_FACT_KEYS = [
     "a11y.contrast_failure_count", "a11y.html_lang_present", "a11y.missing_alt_count",

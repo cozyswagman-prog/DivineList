@@ -70,11 +70,9 @@ export const EVIDENCE_METHOD_CONFIDENCE_CAPS = {
   'browser-test': 0.9,
   'structured-data': 0.94,
   'link-check': 0.9,
-  'form-test': 0.9,
   screenshot: 0.76,
   'business-profile': 0.76,
   manual: 0.76,
-  other: 0.5,
 } as const satisfies Record<EvidenceMethod, number>;
 
 export const RENDER_DEPENDENT_METHODS = [
@@ -84,7 +82,6 @@ export const RENDER_DEPENDENT_METHODS = [
   'browser-test',
   'screenshot',
   'structured-data',
-  'form-test',
 ] as const satisfies readonly EvidenceMethod[];
 
 export const SITE_COVERAGE_FACT_PREFIXES = [
@@ -98,6 +95,7 @@ export const AVAILABILITY_BLOCKER_RULE_IDS = [
   'AVL-001',
   'AVL-002',
   'AVL-003',
+  'AVL-005',
   'AVL-007',
 ] as const;
 

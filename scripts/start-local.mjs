@@ -11,6 +11,17 @@ import { verifyReleaseReport } from './verify-release-report.mjs';
 export const LOCAL_IP = '127.0.0.1';
 export const DEFAULT_PORT = 8787;
 
+const parseIPv4 = (value) => {
+  if (!/^(?:\d{1,3}\.){3}\d{1,3}$/u.test(value)) {
+    return false;
+  }
+  const octets = value.split('.');
+  return octets.every((octet) => {
+    const number = Number(octet);
+    return Number.isInteger(number) && number >= 0 && number <= 255;
+  });
+};
+
 const readOptionValue = (arguments_, index, name) => {
   const argument = arguments_[index];
   const prefix = `${name}=`;
@@ -27,8 +38,12 @@ const readOptionValue = (arguments_, index, name) => {
   return undefined;
 };
 
-export const parseStartArguments = (arguments_) => {
+export const parseStartArguments = (
+  arguments_,
+  { allowRemoteIp = false } = {},
+) => {
   let port = DEFAULT_PORT;
+  let ip = LOCAL_IP;
   let portSeen = false;
   let ipSeen = false;
   for (let index = 0; index < arguments_.length;) {
@@ -49,20 +64,29 @@ export const parseStartArguments = (arguments_) => {
     const ipOption = readOptionValue(arguments_, index, '--ip');
     if (ipOption) {
       if (ipSeen) throw new Error('--ip får bara anges en gång.');
-      if (ipOption.value !== LOCAL_IP) {
+      if (!parseIPv4(ipOption.value)) {
+        throw new Error(
+          `Ogiltig IP-adress: ${ipOption.value}. Använd IPv4-form 0-255 i varje fält.`,
+        );
+      }
+      if (!allowRemoteIp && ipOption.value !== LOCAL_IP) {
         throw new Error(
           `DivineList får bara bindas lokalt till ${LOCAL_IP}; ${ipOption.value} stoppades.`,
         );
       }
+      ip = ipOption.value;
       ipSeen = true;
       index += ipOption.used;
       continue;
     }
+    const defaultIpHint = allowRemoteIp
+      ? '--ip=<IPv4>'
+      : `--ip=${LOCAL_IP}`;
     throw new Error(
-      `Startargumentet ${arguments_[index]} stöds inte. Endast --port och --ip=${LOCAL_IP} är tillåtna.`,
+      `Startargumentet ${arguments_[index]} stöds inte. Endast --port och ${defaultIpHint} är tillåtna.`,
     );
   }
-  return { ip: LOCAL_IP, port };
+  return { ip, port };
 };
 
 export const assertPortAvailable = (port, ip = LOCAL_IP) =>

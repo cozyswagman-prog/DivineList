@@ -203,8 +203,8 @@ export const SAMPLE_DATASET: AuditDataset = {
         {
           evidence: evidence(
             'linne-form',
-            'Syntetiskt kontaktformulärprov',
-            'form-test',
+            'Syntetisk formulärobservation',
+            'browser-test',
           ),
           facts: [
             ['forms.any_form_present', true],
@@ -224,8 +224,8 @@ export const SAMPLE_DATASET: AuditDataset = {
         {
           evidence: evidence(
             'linne-ops',
-            'Syntetisk kvalitetskontroll',
-            'other',
+            'Syntetisk HTML-kontroll',
+            'html',
           ),
           facts: [
             ['operations.helpful_404_present', false],

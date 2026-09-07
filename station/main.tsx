@@ -31,6 +31,7 @@ type Job = {
   role: Exclude<Role, 'captain'>;
   kind: string;
   status: string;
+  orderVersion?: string;
   instruction?: string;
   companyId?: string;
   result?: string;
@@ -69,15 +70,15 @@ const statusNames: Record<string, string> = {
 };
 const rolePrompts: Record<Exclude<Role, 'captain'>, string> = {
   scout:
-    'Beskriv en researchplan för att hitta lokala företag i Göteborg med behov av en tydligare webbplats.',
+    'Batch: GÖTEBORG-100-01.\n\nTa fram en kort och strikt researchchecklista för nästa batch med målet 100 nya företagskandidater inom Göteborgs kommun.\n\nUtgå endast från offentliga, tillåtna och källbundna uppgifter. Företagen ska komma från stationens ordinarie kartkälla och kommunavgränsning. Skapa eller gissa aldrig företagsnamn, webbplatser, adresser eller verksamhetsstatus.\n\nFör varje kandidat ska underlaget, när källan medger det, innehålla\n- företags- eller verksamhetsnamn\n- offentlig källänk och käll-id\n- källtyp\n- eventuell uttryckligen angiven webbplats\n- insamlingstid\n- vad som fortfarande behöver verifieras\n\nKartan visar kandidater, inte bekräftad juridisk identitet, aktiv verksamhet eller korrekt huvuddomän. Saknas tillräckligt underlag ska kandidaten parkeras, inte fyllas ut med antaganden. Fyll inte kvoten med osäkra eller dubbla poster.\n\nBeskriv:\n1. vilka poster som kan lämnas vidare till Kartografen\n2. vilka som ska parkeras\n3. vilka som ska uteslutas\n4. vilka käll- eller åtkomstfel som ska stoppa insamlingen.\n\nIngen kontaktinsamling, outreach, inloggning, CAPTCHA-lösning eller kringgång av robotsregler får ingå.',
   mapper:
-    'Beskriv vilka identitetsuppgifter och källor som behövs för att undvika dubbletter i företagslistan.',
+    'Batch: GÖTEBORG-100-01.\n\nTa fram en kvalitetschecklista för hur nästa batch med upp till 100 källbundna kandidater ska normaliseras och kontrolleras före webbanalys.\n\nFör varje kandidat ska följande hållas isär:\n- juridiskt företag\n- lokalt arbetsställe eller filial\n- verksamhetsnamn\n- offentlig källpost\n- normaliserad domän\n- relationen mellan verksamheten och domänen.\n\nKontrollera dubbletter med befintligt käll-id, normaliserad domän, stabilt kandidat-id och andra redan kända källposter. Samma kedja, organisation, byggnad eller delade webbplats får inte automatiskt behandlas som samma arbetsställe. En gemensam koncerndomän är inte automatiskt företagets primära webbplats.\n\nAnvänd bara domäner som uttryckligen finns i källunderlaget eller i en tillåten importerad källa. Gissa aldrig en domän från företagsnamnet. Saknad, ogiltig, parkerad eller motsägande domän ska markeras tydligt och inte köas för webbanalys.\n\nFöreslå en enkel disposition för varje post:\n- vidare till Analytikern\n- parkerad för identitetskontroll\n- dubblett\n- utesluten\n- saknar webbplats.\n\nLista även vilka uppgifter och källor som måste bevaras för att beslutet ska gå att följa i efterhand. Höj inte mänsklig granskningsstatus och påstå inte att identiteten är slutligt godkänd.',
   analyst:
-    'Ge mig en kort checklista för att bedöma en lokal företagswebbplats. Skilj sådant som kräver ett riktigt webbplatstest från generella råd.',
+    'Batch: GÖTEBORG-100-01.\n\nTa fram en strikt analysmall för varje kandidat i nästa batch som har en källbunden offentlig domän.\n\nBedöm endast de observationer som stationen faktiskt har hämtat och sparat. Skilj alltid mellan:\n- Observerat: direkt belagt av HTML, HTTP-svar eller sparade metadata.\n- Förslag: en möjlig förbättring, inte ett bekräftat fel.\n- Unknown - needs verification: sådant som underlaget inte kan bevisa.\n\nKontrollera när underlaget finns:\n- sidtitel\n- metabeskrivning\n- språk\n- viewport\n- synlig rubrik och huvudsakligt budskap\n- navigations- och kontaktvägar som faktiskt finns i den hämtade sidan\n- om nästa steg för besökaren verkar tydligt\n- observationens URL, tid, HTTP-status och kontrollsumma.\n\nPåstå inte att webbplatsen är mobilanpassad eller inte mobilanpassad enbart från viewport-taggen. Påstå inte faktisk laddtid, formulärfunktion, tillgänglighet, konverteringsproblem, SEO-resultat eller hela webbplatsens kvalitet utan motsvarande testunderlag.\n\nOm åtkomst blockeras av robotsregler, CAPTCHA, timeout eller omdirigeringsskydd ska resultatet beskrivas som otillgängligt eller ofullständigt, aldrig som ett negativt webbplatsfynd. Ge högst tre konkreta, källnära förbättringsförslag per företag. Undvik generiska säljfraser, påståenden om ekonomi och slutsatser om köpbehov.',
   reviewer:
-    'Beskriv hur jag kan granska ett AI-utkast efter osäkra slutsatser och saknade källor innan jag använder det.',
+    'Batch: GÖTEBORG-100-01.\n\nTa fram en granskningschecklista för Analytikerns utkast i nästa batch med upp till 100 företag.\n\nJämför varje påstående med exakt samma sparade originalobservationer. Det andra AI-anropet är inte en oberoende källa. Ta bort, begränsa eller flytta alla påståenden som inte stöds av underlaget till Unknown - needs verification.\n\nKontrollera särskilt:\n- att företagsnamn och domän inte har blandats ihop\n- att filial, kedja och juridisk organisation inte likställs utan stöd\n- att en enda HTML-sida inte beskrivs som hela webbplatsen\n- att frånvaro i hämtad HTML inte automatiskt kallas bevisad frånvaro på sajten\n- att viewport inte används som bevis på fungerande mobil design\n- att inga påhittade mätvärden, kunder, priser, intäkter eller affärsproblem anges\n- att blockerad åtkomst inte kallas ett webbplatsfel\n- att observationer, förbättringsförslag och okända uppgifter hålls åtskilda\n- att källa, URL, tid och begränsad täckning framgår.\n\nResultatet ska vara ett komplett men kort korrigerat utkast med\n- summary\n- suggestions\n- unknowns.\n\nMarkera tydligt att resultatet är ett AI-granskat utkast som fortfarande kräver mänsklig bedömning. Godkänn inte identitet, kontaktberedskap, kundbehov eller annonsering.',
   scribe:
-    'Ge mig en kort mall för en företagsanteckning med källa, observationer, förslag och sådant som behöver verifieras.',
+    'Batch: GÖTEBORG-100-01.\n\nTa fram en mall för hur nästa batch med upp till 100 företag ska sammanställas i Obsidian så att underlaget blir lätt att följa, kontrollera och jämföra.\n\nVarje företagskort bör tydligt separera:\n1. Identitet och offentlig källpost.\n2. Känd eller saknad domän.\n3. Kodsammanställda observationer.\n4. AI-förslag.\n5. Unknown - needs verification.\n6. Åtkomst- eller täckningsbegränsningar.\n7. Aktuell arbetsstatus.\n8. Käll-URL, insamlingstid och hash när dessa finns.\n\nDen gemensamma batchöversikten bör visa:\n- batchnamn och körningstid\n- målantal\n- antal nya kandidater\n- antal dubbletter\n- antal utan domän\n- antal parkerade identiteter\n- antal blockerade eller ofullständiga hämtningar\n- antal analysutkast\n- antal som fortfarande väntar på mänsklig granskning.\n\nSkriv inte att ett företag har en dålig webbplats, behöver köpa en ny webbplats eller är redo för kontakt om underlaget inte uttryckligen bevisar det. Ett AI-utkast är inte ett mänskligt godkännande.\n\nBevara tidigare rapportversioner och användarens egna anteckningar. Identiskt underlag ska inte skapa dubblettfiler. Om en befintlig rapport har redigerats ska konflikten parkeras och redovisas, inte skrivas över.\n\nIngen outreach, kontaktlista, publicering, runtimeacceptans eller annonseringsstatus ska skapas.',
 };
 function formatTime(value: string) {
   const date = new Date(value);
@@ -103,7 +104,6 @@ function App() {
   const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
   const [model, setModel] = useState('');
   const [goal, setGoal] = useState('10');
-  const [instruction, setInstruction] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
@@ -248,7 +248,6 @@ function App() {
     );
   const selectRole = (role: Role) => {
     setSelected(role);
-    setInstruction('');
     setNotice('');
     if (window.innerWidth < 1050)
       window.setTimeout(
@@ -572,9 +571,15 @@ function App() {
                     id="captain-model"
                     value={model}
                     onChange={(event) => setModel(event.target.value)}
-                    disabled={busy || state?.running}
+                    disabled={
+                      busy || state?.running || !state?.ollama.models.length
+                    }
                   >
-                    <option value="">Välj installerad modell</option>
+                    <option value="">
+                      {state?.ollama.available && !state.ollama.models.length
+                        ? 'Inga lokala modeller installerade'
+                        : 'Välj installerad modell'}
+                    </option>
                     {state?.ollama.models.map((name) => (
                       <option value={name} key={name}>
                         {name}
@@ -610,7 +615,9 @@ function App() {
                     <span className="signal" />
                     <p>
                       {state?.ollama.available
-                        ? 'Välj en installerad modell för AI-uppdrag.'
+                        ? state.ollama.models.length
+                          ? 'Välj en installerad modell för AI-uppdrag.'
+                          : 'Ollama är ansluten men saknar en lokal modell. Öppna maskinrummet för nästa steg.'
                         : 'Ollama väntar på anslutning.'}
                       <button onClick={() => setDrawer('setup')}>
                         Öppna maskinrummet →
@@ -692,43 +699,33 @@ function App() {
                   </div>
                 )}
                 <label className="field-label" htmlFor="agent-order">
-                  Skriv en rådgivande order
+                  Permanent order för denna agent
                 </label>
                 <textarea
                   id="agent-order"
                   rows={5}
                   maxLength={2000}
-                  placeholder={rolePrompts[selected]}
-                  value={instruction}
-                  onChange={(event) => setInstruction(event.target.value)}
+                  value={rolePrompts[selected]}
+                  readOnly
+                  aria-readonly="true"
                 />
-                <div className="order-meta">
-                  <button
-                    className="inline-button"
-                    onClick={() => setInstruction(rolePrompts[selected])}
-                  >
-                    Använd exempel
-                  </button>
-                  <span>{instruction.length}/2000</span>
-                </div>
                 <button
                   className="button primary"
-                  disabled={busy || !state || !instruction.trim()}
+                  disabled={busy || !state}
                   onClick={() =>
                     void act(async () => {
                       await post('/api/command', {
                         role: selected,
-                        instruction: instruction.trim(),
+                        instruction: rolePrompts[selected],
                       });
-                      setInstruction('');
                     }, 'Ordern ligger i kön. Tryck Kör kön när besättningen ska börja.')
                   }
                 >
                   <span aria-hidden="true">+</span> Lägg i kön
                 </button>
                 <p className="control-footnote">
-                  Ordern behandlas när du kör kön. Modellen får din instruktion
-                  och köantal, inte företagens rapporter, och ger generella råd.
+                  Ordern är permanent för vald agent och skickas oförändrad vid varje
+                  köning av {selectedCrew.name}.
                 </p>
                 <p className="voice-note">
                   TANGENTBORD AKTIVT · Röst inte installerad
@@ -1033,10 +1030,15 @@ function App() {
                                     (item) => item.id === job.companyId,
                                   )?.name || job.kind)}
                           </span>
-                          <span className={`status-badge status-${job.status}`}>
-                            {statusNames[job.status] || job.status}
-                          </span>
-                          <span className="job-expand">+</span>
+                         <span className={`status-badge status-${job.status}`}>
+                           {statusNames[job.status] || job.status}
+                         </span>
+                          {job.orderVersion ? (
+                            <span className="status-badge">
+                              {job.orderVersion}
+                            </span>
+                          ) : null}
+                         <span className="job-expand">+</span>
                         </summary>
                         <div className="job-result">
                           {job.result ||

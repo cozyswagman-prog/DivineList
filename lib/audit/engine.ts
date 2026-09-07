@@ -1340,12 +1340,28 @@ export const isValidIsoTimestamp = (value: string): boolean => {
   const second = Number(match?.[6]);
   const offsetHour = Number(match?.[8] ?? 0);
   const offsetMinute = Number(match?.[9] ?? 0);
+  const isLeapYear =
+    year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+  const daysInMonth = [
+    31,
+    isLeapYear ? 29 : 28,
+    31,
+    30,
+    31,
+    30,
+    31,
+    31,
+    30,
+    31,
+    30,
+    31,
+  ];
   const calendarDayIsValid =
     match !== null &&
     month >= 1 &&
     month <= 12 &&
     day >= 1 &&
-    day <= new Date(Date.UTC(year, month, 0)).getUTCDate();
+    day <= daysInMonth[month - 1];
   return !(
     !calendarDayIsValid ||
     hour > 23 ||
@@ -1486,11 +1502,11 @@ const isPublicHttpUrl = (value: string): boolean => {
 const sourceMatchesDomain = (sourceUrl: string, domain: string): boolean => {
   try {
     const sourceHost = new URL(sourceUrl).hostname.toLowerCase();
-    const normalizedDomain = domain.toLowerCase();
     const withoutWww = (host: string): string =>
       host.startsWith('www.') ? host.slice(4) : host;
+    const normalizedDomain = withoutWww(domain.toLowerCase());
     return (
-      withoutWww(sourceHost) === withoutWww(normalizedDomain) ||
+      withoutWww(sourceHost) === normalizedDomain ||
       sourceHost.endsWith(`.${normalizedDomain}`)
     );
   } catch {
@@ -2108,8 +2124,6 @@ const validateDataset = (input: unknown): AuditDataset => {
         'business-profile',
         'structured-data',
         'link-check',
-        'form-test',
-        'other',
       ];
       const strengths = ['strong', 'medium', 'weak'];
       const methodOk = methods.includes(String(rawEvidence.method));

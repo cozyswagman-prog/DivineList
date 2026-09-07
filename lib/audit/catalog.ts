@@ -59,7 +59,6 @@ const evidenceMethodsForFact = (fact: string): EvidenceMethod[] => {
       'browser-test',
       'lighthouse',
       'accessibility-audit',
-      'form-test',
       'screenshot',
       'manual',
     ];
@@ -81,11 +80,11 @@ const evidenceMethodsForFact = (fact: string): EvidenceMethod[] => {
   if (fact.startsWith('content.') || fact.startsWith('trust.'))
     return ['html', 'browser-test', 'link-check', 'screenshot', 'manual'];
   if (fact.startsWith('forms.'))
-    return ['form-test', 'browser-test', 'html', 'manual'];
+    return ['browser-test', 'html', 'manual'];
   if (fact.startsWith('commerce.'))
-    return ['form-test', 'browser-test', 'business-profile', 'html', 'manual'];
+    return ['browser-test', 'business-profile', 'html', 'manual'];
   if (fact.startsWith('privacy.'))
-    return ['browser-test', 'form-test', 'html', 'manual'];
+    return ['browser-test', 'html', 'manual'];
   if (fact.startsWith('security.'))
     return ['headers', 'browser-test', 'html', 'link-check'];
   if (fact.startsWith('operations.'))

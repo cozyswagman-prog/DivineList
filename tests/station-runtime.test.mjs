@@ -478,6 +478,51 @@ test('start refuses an empty session when the goal is already complete', async (
   assert.equal(state.jobs.length, 0);
 });
 
+test('a blocked company does not consume the research goal and is replaced on the next start', async (t) => {
+  let discoveryRuns = 0;
+  const { runtime } = await setup(t, {
+    discover: async () => {
+      discoveryRuns += 1;
+      return discoveryRuns === 1
+        ? Array.from({ length: 16 }, (_, index) => seed(index + 1))
+        : [seed(17)];
+    },
+    inspectSite: async (domain) => {
+      if (domain === 'business-1.se')
+        throw new Error('Syntetiskt åtkomsthinder');
+      return {
+        title: `Titel ${domain}`,
+        statusCode: 200,
+        url: `https://${domain}/`,
+        capturedAt: AT,
+      };
+    },
+  });
+  await runtime.configure({ goal: 16 });
+  await runtime.control('start');
+  await until(() => !runtime.getState().running);
+  assert.equal(
+    runtime.getState().companies.filter((company) => company.status !== 'blocked')
+      .length,
+    15,
+  );
+  assert.equal(
+    runtime.getState().companies.filter((company) => company.status === 'blocked')
+      .length,
+    1,
+  );
+
+  await runtime.control('start');
+  await until(() => !runtime.getState().running);
+  assert.equal(discoveryRuns, 2);
+  assert.ok(runtime.getState().companies.some((company) => company.id === '17'));
+  assert.equal(
+    runtime.getState().companies.filter((company) => company.status !== 'blocked')
+      .length,
+    16,
+  );
+});
+
 test('stop cancels pending work and late discovery cannot append companies', async (t) => {
   const held = deferred();
   let started = false;

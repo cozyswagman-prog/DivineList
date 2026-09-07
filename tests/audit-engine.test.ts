@@ -31,6 +31,7 @@ import {
   FACT_HASH,
   FACT_CONTRACT,
   HASH_GOLDEN_VECTOR,
+  isValidIsoTimestamp,
   isVerifiedV2BatchContract,
   parseDatasetJson,
   RULE_HASH,
@@ -1159,7 +1160,7 @@ test('evaluation-policyn har en fryst hash och parsern avvisar all policydrift',
   assert.equal(EVALUATION_POLICY_HASH, stableHash(EVALUATION_POLICY));
   assert.equal(
     EVALUATION_POLICY_HASH,
-    'sha256:1aeaaa97cfe50a9ad5bcbfa10c4554be7cc5c44bb9add722cfe21cbd2c72d528',
+    'sha256:e70213fd64d93e5e0a6f3b79ef2f467c1f2dbfbe5db30e357154970b7b37a225',
   );
 
   const wrongVersion = structuredClone(v2DatasetFor(v2CompanyFor()));
@@ -1201,19 +1202,19 @@ test('cross-runtime golden låser policy, register, datasetkontrakt och hela man
   assert.equal(stableHash(CONTRACT_MANIFEST), CONTRACT_MANIFEST_HASH);
   assert.equal(
     FACT_HASH,
-    'sha256:837feeb902c09495e4d97bdf3a3696bc3b5ab4f764090576dceadd0b34e0d643',
+    'sha256:2d3fdaad45155c4ba56ba952579fc8bb8da8015f9f2f1414368627fe58d5dec7',
   );
   assert.equal(
     RULE_HASH,
-    'sha256:5269f4d86f079f1c338478441111a92cfd12719a486f68908db61e1ca65922ec',
+    'sha256:ea1086980e715285c9f2cbadb99dbbae4dd6b48bb9514edc45ced2ff2d2b65e5',
   );
   assert.equal(
     DATASET_HASH_CONTRACT_HASH,
-    'sha256:94d963ff336609fae100362c583e46879c50cecf91c997eaaff41fedb36e69a9',
+    'sha256:b3e750fff6cde8c711016b18206c4ee7a920ca444a834470e22f9873b6825674',
   );
   assert.equal(
     CONTRACT_MANIFEST_HASH,
-    'sha256:a87252f1e5f7b12cda35a271ce6147a342816ffa4e6aa4c820e34b3bbc9c0fa6',
+    'sha256:d31c140bec5532b7f0b8c6eeb004e72e81660f02eac004509a728e9f385d9401',
   );
   assert.equal(
     HASH_GOLDEN_VECTOR.sha256,
@@ -1667,6 +1668,18 @@ test('V2 avvisar omöjliga datum och numeriska fakta utanför domänen', () => {
   );
 });
 
+test('ISO-tid och källvärd normaliseras korrekt i sällsynta men giltiga kantfall', () => {
+  assert.equal(isValidIsoTimestamp('0000-02-29T00:00:00Z'), true);
+  assert.equal(isValidIsoTimestamp('0001-02-29T00:00:00Z'), false);
+
+  const company = v2CompanyFor();
+  company.domain = 'www.fixture.example';
+  company.evidence[0].sourceUrl = 'https://shop.fixture.example/';
+  assert.doesNotThrow(() =>
+    parseDatasetJson(JSON.stringify(v2DatasetFor(company))),
+  );
+});
+
 test('pausade, manuella och human-required-regler kan inte avgöra V1 utan workplaceUid', () => {
   const pausedRule = AUDIT_RULES.find(
     (rule) => rule.evaluationMode === 'paused',
@@ -1959,6 +1972,33 @@ test('en otillgänglig startsida undertrycker följdfynd', () => {
     ?.split('## Negativa kalibreringsförslag (inte fynd)')[0];
   assert.ok(positiveProposalSection);
   assert.doesNotMatch(positiveProposalSection, /Sidtitel saknas/);
+});
+
+test('ett ogiltigt TLS-certifikat undertrycker följdfynd', () => {
+  const company = oneFactCompany('transport.tls_valid', false, {
+    method: 'headers',
+  });
+  company.facts.push(
+    {
+      key: 'transport.https_enabled',
+      value: true,
+      evidenceIds: ['e-1'],
+    },
+    {
+      key: 'seo.title_present',
+      value: false,
+      evidenceIds: ['e-1'],
+    },
+  );
+  const audit = auditCompany(company, AUDIT_RULES, now);
+  assert.equal(
+    audit.results.find((result) => result.ruleId === 'AVL-005')?.proposedState,
+    'detected',
+  );
+  assert.equal(
+    audit.results.find((result) => result.ruleId === 'SEO-001')?.executionStatus,
+    'blocked',
+  );
 });
 
 test('failed-regelutfall kan aldrig bära ett kalibreringsförslag', () => {

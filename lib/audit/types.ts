@@ -30,9 +30,7 @@ export type EvidenceMethod =
   | 'screenshot'
   | 'business-profile'
   | 'structured-data'
-  | 'link-check'
-  | 'form-test'
-  | 'other';
+  | 'link-check';
 
 export type EvidenceStrength = 'strong' | 'medium' | 'weak';
 

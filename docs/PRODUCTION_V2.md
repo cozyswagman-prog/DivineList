@@ -172,7 +172,7 @@ separat, uttryckligt godkänd semantik innan någon framtida överföring kan
 | Granskningsbeslut   | `divinelist.review-decision.v2.3.0`   |
 | Produktionsstatus   | `foretagskarta.production-status.v1`  |
 
-Kontraktsmanifestet innehåller 128 fakta och 120 regeldefinitioner. De exakta hashankarna är fact `sha256:837feeb902c09495e4d97bdf3a3696bc3b5ab4f764090576dceadd0b34e0d643`, rules `sha256:5269f4d86f079f1c338478441111a92cfd12719a486f68908db61e1ca65922ec`, policy `sha256:1aeaaa97cfe50a9ad5bcbfa10c4554be7cc5c44bb9add722cfe21cbd2c72d528`, datasetkontrakt `sha256:94d963ff336609fae100362c583e46879c50cecf91c997eaaff41fedb36e69a9` och manifest `sha256:a87252f1e5f7b12cda35a271ce6147a342816ffa4e6aa4c820e34b3bbc9c0fa6`.
+Kontraktsmanifestet innehåller 128 fakta och 120 regeldefinitioner. De exakta hashankarna är fact `sha256:2d3fdaad45155c4ba56ba952579fc8bb8da8015f9f2f1414368627fe58d5dec7`, rules `sha256:ea1086980e715285c9f2cbadb99dbbae4dd6b48bb9514edc45ced2ff2d2b65e5`, policy `sha256:e70213fd64d93e5e0a6f3b79ef2f467c1f2dbfbe5db30e357154970b7b37a225`, datasetkontrakt `sha256:b3e750fff6cde8c711016b18206c4ee7a920ca444a834470e22f9873b6825674` och manifest `sha256:d31c140bec5532b7f0b8c6eeb004e72e81660f02eac004509a728e9f385d9401`.
 
 En V2-batch får innehålla högst 100 företag och 4 500 000 UTF-8-byte. Standard är 50. Exportören delar större listor i flera batcher.
 

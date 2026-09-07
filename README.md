@@ -18,13 +18,24 @@ Från projektmappen:
 
 ```powershell
 .\run-station.ps1
+.\run-station-mobile.ps1
 ```
 
 Öppna **http://127.0.0.1:8790/**. Wrappern kan starta den förberedda portabla
-Ollama-motorn på datorn. Alternativt kör `npm run station` med Ollama redan
+Ollama-motorn på datorn. Möjligt mobilläge startar i `run-station-mobile.ps1`
+och lyssnar på LAN-adressen i stället, standard `0.0.0.0:8790`.
+Alternativt kör `npm run station` med Ollama redan
 startad. Välj en installerad modell, exempelvis stationens standard
 `qwen3:4b`, och ett mål mellan 1 och 500 företag.
 Första provurvalet är förinställt till 10.
+
+När du vill nå stationen från annan enhet på samma nätverk:
+
+```powershell
+.\run-station-mobile.ps1 -Ip 192.168.1.42 -Port 8790
+```
+
+Byt `192.168.1.42` mot din dators aktuella LAN-adress.
 
 - **Starta Göteborgsresearch** hämtar OpenStreetMap-kandidater, ordnar
   domäner och köar webbplatsanalys. Kartposter behöver fortfarande
@@ -163,12 +174,17 @@ skrivas till en annan lokal katalog.
 byggda appen explicit till `127.0.0.1`. Det undviker oavsiktlig exponering på
 det lokala nätverket. `run-divinelist.ps1` tillåter inte annan bindning, så
 `--ip` är låst till loopback i lokal startväg.
+`npm run start:mobile` (eller `npm run start -- --ip 0.0.0.0`) binder till
+`0.0.0.0` och används för mobilvisning från annat nätverk när samma Wi-Fi
+används. Du kan även starta via `.\run-divinelist-mobile.ps1` för Windows-
+förenklad kontroll och extra varning om brandväggsexponering.
 
 För normal lokal produktionsstart används helst den säkra Windows-wrappern:
 
 ```powershell
 .\run-divinelist.ps1
 .\run-divinelist.ps1 -Port 3006
+.\run-divinelist-mobile.ps1 -Ip 192.168.1.42 -Port 8787
 ```
 
 Wrappern använder port 8787 som standard, kräver Node.js minst 22.13 och en
@@ -176,6 +192,8 @@ befintlig `node_modules`, bygger automatiskt `dist` om produktionsbygget saknas
 och startar endast på loopback. `scripts/start-local.mjs` ger ett tydligt fel om
 `dist` saknas, och produktionssmoketestet använder samma startväg. Wrappern har
 verifierats på port 3006 med HTTP 200, renderad HTML, CSP och ren avstängning.
+Mobilvarianten varnar alltid när den exponeras med `-Ip 0.0.0.0` (eller explicit
+IP som inte är loopback) och bör köras endast på kontrollerat privat nät.
 
 `npm run export:local-queues` läser den aktuella granskningskön från den lokala
 Företagskarta-motorn och binder varje köpost till exakt V2.3-batch och förseglat
